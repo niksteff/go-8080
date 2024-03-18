@@ -13,7 +13,7 @@ import (
 // - advance the buffer by the number of bytes read
 // - if possible do not read the entire file into memory
 
-func ReadProgram(r io.Reader) {
+func ReadProgram(r io.Reader, w io.Writer) {
 	log.Printf("disassembling program...\n ")
 
 	// first read in the entire program
@@ -30,13 +30,13 @@ func ReadProgram(r io.Reader) {
 	// the pc may jump multiple bytes depending how many bytes the instruction
 	// read.
 	for pc < uint(len(buf)) {
-		pc += Disassemble(buf, pc)
+		pc += Disassemble(w, buf, pc)
 	}
 
 	log.Printf("\n disassembled %d bytes\n", pc)
 }
 
-func Disassemble(b []byte, pc uint) uint {
+func Disassemble(w io.Writer, b []byte, pc uint) uint {
 	var ins instruction
 	ins.opcode = b[pc]
 
@@ -50,7 +50,7 @@ func Disassemble(b []byte, pc uint) uint {
 		ins.name = "UNKWN"
 	}
 
-	log.Printf("%04x	\t%s", pc, ins.String())
+	w.Write([]byte(fmt.Sprintf("%04x	\t%s\n", pc, ins.String())))
 
 	return uint(len(ins.parameters) + 1)
 }
